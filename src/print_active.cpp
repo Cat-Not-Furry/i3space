@@ -8,17 +8,20 @@ namespace i3space {
 
 int print_active_main(const std::string& filter_output) {
   I3Ipc ipc;
-  if (!ipc.connect()) {
-    std::cerr << "i3space: " << ipc.last_error() << "\n";
-    return 1;
-  }
 
   std::string ws_json;
   std::string tree_json;
   std::string out_json;
-  if (!ipc.get_workspaces(ws_json) || !ipc.get_tree(tree_json) ||
-      !ipc.get_outputs(out_json)) {
-    std::cerr << "i3space: IPC request failed\n";
+  if (!ipc.get_workspaces(ws_json)) {
+    std::cerr << "i3space: get_workspaces failed: " << ipc.last_error() << "\n";
+    return 1;
+  }
+  if (!ipc.get_tree(tree_json)) {
+    std::cerr << "i3space: get_tree failed: " << ipc.last_error() << "\n";
+    return 1;
+  }
+  if (!ipc.get_outputs(out_json)) {
+    std::cerr << "i3space: get_outputs failed: " << ipc.last_error() << "\n";
     return 1;
   }
 

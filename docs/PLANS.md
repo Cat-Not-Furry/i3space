@@ -30,7 +30,7 @@ Sections in unified file: `#!config`, `#!transparency`.
 
 ### Plan 01 — Preparation
 - [x] CMake builds stub/binary
-- [x] `build-and-install.sh`, LICENSE, `.gitignore`, `examples/`
+- [x] `build-and-install.sh` (no Arch), `packaging/PKGBUILD` + `makepkg -si` (Arch)
 
 ### Plan 02 — Planning
 - [x] This file with DoD and metrics

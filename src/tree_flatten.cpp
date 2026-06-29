@@ -80,81 +80,80 @@ bool parse_outputs(const std::string& json, WorkspaceView& view) {
   return true;
 }
 
-void walk_tree(simdjson::ondemand::value node, const std::string& current_output,
-               const std::string& current_ws,
-               std::unordered_map<std::string, int>& ws_name_to_idx,
-               WorkspaceView& view) {
+void walk_tree_dom(const simdjson::dom::element& node, const std::string& current_output,
+                   const std::string& current_ws,
+                   const std::unordered_map<std::string, int>& ws_name_to_idx,
+                   WorkspaceView& view) {
   std::string_view type_sv;
-  if (node["type"].get_string().get(type_sv)) {
+  if (node["type"].get(type_sv)) {
     return;
   }
-  const std::string type(type_sv);
 
   std::string output = current_output;
   std::string ws_name = current_ws;
 
-  if (type == "output") {
+  if (type_sv == "output") {
     std::string_view name;
-    if (!node["name"].get_string().get(name)) {
+    if (!node["name"].get(name)) {
       output = std::string(name);
     }
-  } else if (type == "workspace") {
+  } else if (type_sv == "workspace") {
     std::string_view name;
-    if (!node["name"].get_string().get(name)) {
+    if (!node["name"].get(name)) {
       ws_name = std::string(name);
     }
-  } else if (node["window"].error() == simdjson::SUCCESS) {
-    if (!ws_name.empty()) {
-      auto it = ws_name_to_idx.find(ws_name);
-      if (it != ws_name_to_idx.end()) {
-        WindowEntry we;
-        we.ws_index = it->second;
-        std::string_view title;
-        if (!node["name"].get_string().get(title)) {
-          we.title = std::string(title);
-        }
-        simdjson::ondemand::object rect;
-        if (!node["rect"].get_object().get(rect)) {
-          int64_t v = 0;
-          if (!rect["x"].get(v)) {
-            we.rect_x = static_cast<int>(v);
+  } else {
+    simdjson::dom::element window_field;
+    if (!node["window"].get(window_field) && !window_field.is_null() &&
+        window_field.is_int64()) {
+      if (!ws_name.empty()) {
+        auto it = ws_name_to_idx.find(ws_name);
+        if (it != ws_name_to_idx.end()) {
+          WindowEntry we;
+          we.ws_index = it->second;
+          std::string_view title;
+          if (!node["name"].get(title)) {
+            we.title = std::string(title);
           }
-          if (!rect["y"].get(v)) {
-            we.rect_y = static_cast<int>(v);
+          simdjson::dom::object rect;
+          if (!node["rect"].get(rect)) {
+            int64_t v = 0;
+            if (!rect["x"].get(v)) {
+              we.rect_x = static_cast<int>(v);
+            }
+            if (!rect["y"].get(v)) {
+              we.rect_y = static_cast<int>(v);
+            }
+            if (!rect["width"].get(v)) {
+              we.rect_w = static_cast<int>(v);
+            }
+            if (!rect["height"].get(v)) {
+              we.rect_h = static_cast<int>(v);
+            }
           }
-          if (!rect["width"].get(v)) {
-            we.rect_w = static_cast<int>(v);
+          bool focused = false;
+          if (!node["focused"].get(focused) && focused) {
+            we.focused = 1;
           }
-          if (!rect["height"].get(v)) {
-            we.rect_h = static_cast<int>(v);
+          auto& ws = view.workspaces[static_cast<size_t>(we.ws_index)];
+          const int win_idx = static_cast<int>(view.windows.size());
+          if (ws.first_win < 0) {
+            ws.first_win = win_idx;
           }
+          ++ws.win_count;
+          view.windows.push_back(std::move(we));
         }
-        bool focused = false;
-        if (!node["focused"].get(focused) && focused) {
-          we.focused = 1;
-        }
-        auto& ws = view.workspaces[static_cast<size_t>(we.ws_index)];
-        const int win_idx = static_cast<int>(view.windows.size());
-        if (ws.first_win < 0) {
-          ws.first_win = win_idx;
-        }
-        ++ws.win_count;
-        view.windows.push_back(std::move(we));
       }
+      return;
     }
-    return;
   }
 
-  simdjson::ondemand::array nodes;
-  if (node["nodes"].get_array().get(nodes)) {
+  simdjson::dom::array nodes;
+  if (node["nodes"].get(nodes)) {
     return;
   }
-  for (auto child_result : nodes) {
-    simdjson::ondemand::value child;
-    if (child_result.get(child)) {
-      continue;
-    }
-    walk_tree(child, output, ws_name, ws_name_to_idx, view);
+  for (simdjson::dom::element child : nodes) {
+    walk_tree_dom(child, output, ws_name, ws_name_to_idx, view);
   }
 }
 
@@ -244,15 +243,14 @@ bool flatten_i3_tree(const std::string& workspaces_json,
     }
   }
 
-  simdjson::ondemand::parser tree_parser;
-  simdjson::padded_string tree_padded(tree_json);
-  simdjson::ondemand::document tree_doc;
-  if (tree_parser.iterate(tree_padded).get(tree_doc)) {
+  simdjson::dom::parser tree_parser;
+  simdjson::dom::element tree_root;
+  if (tree_parser.parse(tree_json).get(tree_root)) {
     error_out = "parse get_tree failed";
     return false;
   }
 
-  walk_tree(tree_doc, "", "", ws_name_to_idx, out);
+  walk_tree_dom(tree_root, "", "", ws_name_to_idx, out);
 
   for (auto& we : out.windows) {
     if (we.ws_index < 0 || we.ws_index >= static_cast<int>(out.workspaces.size())) {

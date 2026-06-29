@@ -1,0 +1,33 @@
+# i3space — Arch Linux package
+# Mantener a mano; actualizar fuentes con ./prepare-sources.sh
+# AUR: sube PKGBUILD + .SRCINFO
+
+pkgname=i3space
+pkgver=0.2.1
+pkgrel=1
+pkgdesc="Workspace overview for i3 (X11)"
+arch=('x86_64')
+url="https://github.com/Cat-Not-Furry/i3space"
+license=('MIT')
+depends=('i3-wm' 'libx11' 'libxft' 'libxrender' 'fontconfig' 'simdjson')
+makedepends=('cmake')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('c6290d3468afacc0b6d0a74aa5ff4e6553565135254be77d03bb470a70492031')
+
+build() {
+  cd "$pkgname-$pkgver"
+  rm -rf build
+  cmake -B build -DCMAKE_BUILD_TYPE=Release
+  cmake --build build -j"$(nproc)"
+  strip build/i3space
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 build/i3space "$pkgdir/usr/bin/i3space"
+  install -Dm644 man/i3space.1 "$pkgdir/usr/share/man/man1/i3space.1"
+  install -Dm644 examples/i3space.default \
+    "$pkgdir/usr/share/doc/i3space/i3space.default"
+  install -Dm644 examples/picom/i3space.conf \
+    "$pkgdir/usr/share/doc/i3space/picom-i3space.conf"
+}

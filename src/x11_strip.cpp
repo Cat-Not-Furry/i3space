@@ -110,9 +110,6 @@ void StripSession::apply_opacity(Window win) {
 
 void StripSession::draw_strip(size_t output_index, OutputStrip& strip,
                               const WorkspaceView& view) {
-  const int card_w = cfg_.config.card_width;
-  const int card_h = cfg_.config.card_height;
-
   if (strip.pixmap) {
     XFreePixmap(display_, strip.pixmap);
   }
@@ -389,7 +386,6 @@ int show_single_ws_toast(const Config& cfg, const OutputGroup& output, Display* 
     return 1;
   }
 
-  const int screen = DefaultScreen(display);
   const int w = cfg.config.card_width;
   const int h = cfg.config.card_height;
   const int x = output.x + (output.width - w) / 2;

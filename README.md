@@ -13,14 +13,26 @@ Keyboard-driven workspace overview for **i3** on X11. Inspired by Hyprspace; con
 
 ## Build
 
+### Arch Linux
+
+```bash
+cd packaging
+./prepare-sources.sh   # si falta i3space-<version>.tar.gz
+makepkg -si
+```
+
+Ver [packaging/README.md](packaging/README.md).
+
+### Otras distros
+
 ```bash
 ./build-and-install.sh
-# or
+# o
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
 
-Install system-wide: `./build-and-install.sh --system`
+Instalación system-wide (no Arch): `./build-and-install.sh --system`
 
 ## First run
 
@@ -75,9 +87,12 @@ See `examples/i3space.default` and `examples/picom/i3space.conf`.
 
 ```bash
 chmod +x tests/*.sh
-./tests/check_version.sh ./build/i3space
-./tests/bench_parse.sh ./build/i3space
+./tests/check_version.sh i3space          # tras makepkg -si
+./tests/test_flatten.sh i3space
+./tests/bench_parse.sh i3space 20
 ```
+
+O con binario local: `./tests/check_version.sh ./build/i3space`
 
 ## Roadmap
 

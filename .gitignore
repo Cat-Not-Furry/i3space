@@ -1,7 +1,20 @@
+# CMake / compilación local
 /build/
 /compile_commands.json
 /.cache/
+
+# Arch Linux — artefactos de makepkg (no versionar)
+packaging/*.tar.gz
+packaging/*.pkg.tar.*
+packaging/pkg/
+packaging/src/
+packaging/build/
+
+# Objetos y temporales
 *.o
 *.a
 *.swp
+*~
+
+# OS
 .DS_Store

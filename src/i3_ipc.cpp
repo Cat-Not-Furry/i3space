@@ -8,6 +8,7 @@
 #include <string>
 #include <unistd.h>
 
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 
@@ -16,17 +17,51 @@ namespace i3space {
 namespace {
 
 constexpr std::array<char, 6> kMagic{'i', '3', '-', 'i', 'p', 'c'};
+constexpr int kIpcTimeoutMs = 10000;
 
-struct IpcHeader {
+#if defined(__GNUC__) || defined(__clang__)
+#define I3SPACE_PACKED __attribute__((packed))
+#else
+#define I3SPACE_PACKED
+#endif
+
+struct I3SPACE_PACKED IpcHeader {
   char magic[6];
   uint32_t size;
   uint32_t type;
 };
 
+static_assert(sizeof(IpcHeader) == 14, "i3 IPC header must be exactly 14 bytes");
+
+#undef I3SPACE_PACKED
+
+bool poll_readable(int fd, int timeout_ms) {
+  pollfd pfd{};
+  pfd.fd = fd;
+  pfd.events = POLLIN;
+  while (true) {
+    const int r = ::poll(&pfd, 1, timeout_ms);
+    if (r < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      return false;
+    }
+    if (r == 0) {
+      errno = ETIMEDOUT;
+      return false;
+    }
+    return true;
+  }
+}
+
 bool read_exact(int fd, void* buf, size_t len) {
   auto* p = static_cast<char*>(buf);
   size_t got = 0;
   while (got < len) {
+    if (!poll_readable(fd, kIpcTimeoutMs)) {
+      return false;
+    }
     const ssize_t n = ::read(fd, p + got, len - got);
     if (n < 0) {
       if (errno == EINTR) {
@@ -63,6 +98,10 @@ bool write_exact(int fd, const void* buf, size_t len) {
 I3Ipc::I3Ipc() = default;
 
 I3Ipc::~I3Ipc() {
+  disconnect();
+}
+
+void I3Ipc::disconnect() {
   if (fd_ >= 0) {
     ::close(fd_);
     fd_ = -1;
@@ -71,7 +110,9 @@ I3Ipc::~I3Ipc() {
 
 std::string I3Ipc::resolve_socket_path() {
   if (const char* env = std::getenv("I3SOCK")) {
-    return env;
+    if (env[0] != '\0') {
+      return env;
+    }
   }
   FILE* fp = popen("i3 --get-socketpath 2>/dev/null", "r");
   if (!fp) {
@@ -110,16 +151,14 @@ bool I3Ipc::connect() {
   addr.sun_family = AF_UNIX;
   if (path.size() >= sizeof(addr.sun_path)) {
     last_error_ = "socket path too long";
-    ::close(fd_);
-    fd_ = -1;
+    disconnect();
     return false;
   }
   std::memcpy(addr.sun_path, path.c_str(), path.size() + 1);
 
   if (::connect(fd_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) != 0) {
     last_error_ = "connect() to i3 IPC failed";
-    ::close(fd_);
-    fd_ = -1;
+    disconnect();
     return false;
   }
   return true;
@@ -145,7 +184,11 @@ bool I3Ipc::write_message(IpcMessageType type, const std::string& payload) {
 bool I3Ipc::read_reply(std::string& reply_out, uint32_t& reply_type_out) {
   IpcHeader hdr{};
   if (!read_exact(fd_, &hdr, sizeof(hdr))) {
-    last_error_ = "read header failed";
+    if (errno == ETIMEDOUT) {
+      last_error_ = "read header timed out (is i3 running?)";
+    } else {
+      last_error_ = "read header failed";
+    }
     return false;
   }
   if (std::memcmp(hdr.magic, kMagic.data(), kMagic.size()) != 0) {
@@ -155,7 +198,11 @@ bool I3Ipc::read_reply(std::string& reply_out, uint32_t& reply_type_out) {
   reply_type_out = hdr.type;
   reply_out.resize(hdr.size);
   if (hdr.size > 0 && !read_exact(fd_, reply_out.data(), hdr.size)) {
-    last_error_ = "read payload failed";
+    if (errno == ETIMEDOUT) {
+      last_error_ = "read payload timed out";
+    } else {
+      last_error_ = "read payload failed";
+    }
     return false;
   }
   return true;
@@ -163,14 +210,18 @@ bool I3Ipc::read_reply(std::string& reply_out, uint32_t& reply_type_out) {
 
 bool I3Ipc::request(IpcMessageType type, const std::string& payload,
                      std::string& reply_out) {
+  disconnect();
   if (!connect()) {
     return false;
   }
   if (!write_message(type, payload)) {
+    disconnect();
     return false;
   }
   uint32_t reply_type = 0;
-  return read_reply(reply_out, reply_type);
+  const bool ok = read_reply(reply_out, reply_type);
+  disconnect();
+  return ok;
 }
 
 bool I3Ipc::run_command(const std::string& command) {

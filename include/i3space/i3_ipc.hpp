@@ -38,6 +38,7 @@ class I3Ipc {
   int fd_{-1};
   std::string last_error_;
 
+  void disconnect();
   bool write_message(IpcMessageType type, const std::string& payload);
   bool read_reply(std::string& reply_out, uint32_t& reply_type_out);
 };

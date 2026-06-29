@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Fix hang on `--print-active` / `--toggle`: **IPC header struct had 2-byte padding** (16 B sent instead of 14 B)
+- Parse i3 tree with simdjson DOM (safe recursion vs ondemand)
+- IPC: fresh socket per request, 10 s read timeout, ignore empty `I3SOCK`
+- Clearer IPC error messages; flush JSON output early
+
 ## 0.2.0
 
 - Compositor detection (picom, compton, xcompmgr)

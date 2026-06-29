@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
   }
 
   if (do_print) {
-    std::cout << '{';
+    std::cout << '{' << std::flush;
     const int rc = print_active_main(filter_output);
     std::cout << '}' << '\n';
     return rc;

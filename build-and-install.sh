@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build i3space and install locally or system-wide.
+# Build i3space from source (non-Arch distros). Arch: use packaging/PKGBUILD + makepkg -si.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,11 +11,21 @@ usage() {
   cat <<EOF
 Uso: $(basename "$0") [--system] [--prefix DIR]
 
-  --system   Install to /usr/local/bin (requires sudo)
-  --prefix   Install to PREFIX/bin (default: ~/.local)
-  -h, --help This help
+Compila i3space con CMake e instala el binario (distros que no usan pacman/makepkg).
 
-Build dir: \$BUILD_DIR or $ROOT/build
+  --prefix DIR   Instalar en PREFIX/bin (default: ~/.local)
+  --system       Instalar en /usr/local/bin (requiere sudo)
+  -h, --help     Esta ayuda
+
+Arch Linux:
+  cd packaging && ./prepare-sources.sh && makepkg -si
+  Ver packaging/README.md
+
+Variables: BUILD_DIR (default: $ROOT/build)
+
+Ejemplos:
+  $(basename "$0")
+  $(basename "$0") --system
 EOF
 }
 
@@ -28,6 +38,21 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -f /etc/arch-release ]]; then
+  cat <<EOF >&2
+Arch Linux detectado: este script es para otras distros.
+
+Usa el empaquetado oficial:
+  cd "$ROOT/packaging"
+  ./prepare-sources.sh    # si falta i3space-<version>.tar.gz
+  makepkg -si
+
+Ver: packaging/README.md
+EOF
+  exit 1
+fi
+
+echo "==> cmake build"
 cmake -S "$ROOT" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" -j"$(nproc 2>/dev/null || echo 2)"
 strip "$BUILD_DIR/i3space" 2>/dev/null || true
