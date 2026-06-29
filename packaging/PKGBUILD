@@ -12,7 +12,7 @@ license=('MIT')
 depends=('i3-wm' 'libx11' 'libxft' 'libxrender' 'fontconfig' 'simdjson')
 makedepends=('cmake')
 source=("$pkgname-$pkgver.tar.gz")
-sha256sums=('c6290d3468afacc0b6d0a74aa5ff4e6553565135254be77d03bb470a70492031')
+sha256sums=('19271b3047cbfbb4a6315012ae86626eb92c801635a0cb45dab4cfbe7477fe63')
 
 build() {
   cd "$pkgname-$pkgver"

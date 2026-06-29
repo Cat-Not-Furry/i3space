@@ -1,18 +1,17 @@
 pkgbase = i3space
+	pkgname = i3space
 	pkgdesc = Workspace overview for i3 (X11)
 	pkgver = 0.2.1
 	pkgrel = 1
 	url = https://github.com/Cat-Not-Furry/i3space
 	arch = x86_64
 	license = MIT
-	makedepends = cmake
 	depends = i3-wm
 	depends = libx11
 	depends = libxft
 	depends = libxrender
 	depends = fontconfig
 	depends = simdjson
+	makedepends = cmake
 	source = i3space-0.2.1.tar.gz
-	sha256sums = c6290d3468afacc0b6d0a74aa5ff4e6553565135254be77d03bb470a70492031
-
-pkgname = i3space
+	sha256sums = 19271b3047cbfbb4a6315012ae86626eb92c801635a0cb45dab4cfbe7477fe63
