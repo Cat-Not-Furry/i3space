@@ -100,4 +100,6 @@ See [docs/PLANS.md](docs/PLANS.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+**GPL-3.0-or-later** — see [LICENSE](LICENSE) (GNU General Public License v3).
+
+i3space — Copyright (C) 2026 Cat-Not-Furry

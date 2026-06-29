@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Cat-Not-Furry
+
 #include "i3space/app.hpp"
 #include "i3space/config.hpp"
 #include "i3space/first_run.hpp"

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 cmake_minimum_required(VERSION 3.20)
 project(i3space VERSION 0.2.1 LANGUAGES CXX)
 
@@ -50,3 +51,4 @@ target_link_libraries(i3space PRIVATE
 target_compile_options(i3space PRIVATE -Wall -Wextra -O2)
 
 install(TARGETS i3space RUNTIME DESTINATION bin)
+install(FILES LICENSE DESTINATION share/licenses/i3space)

@@ -4,11 +4,11 @@
 
 pkgname=i3space
 pkgver=0.2.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Workspace overview for i3 (X11)"
 arch=('x86_64')
 url="https://github.com/Cat-Not-Furry/i3space"
-license=('MIT')
+license=('GPL-3.0-or-later')
 depends=('i3-wm' 'libx11' 'libxft' 'libxrender' 'fontconfig' 'simdjson')
 makedepends=('cmake')
 source=("$pkgname-$pkgver.tar.gz")
@@ -30,4 +30,5 @@ package() {
     "$pkgdir/usr/share/doc/i3space/i3space.default"
   install -Dm644 examples/picom/i3space.conf \
     "$pkgdir/usr/share/doc/i3space/picom-i3space.conf"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

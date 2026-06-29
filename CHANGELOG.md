@@ -6,6 +6,7 @@
 - Parse i3 tree with simdjson DOM (safe recursion vs ondemand)
 - IPC: fresh socket per request, 10 s read timeout, ignore empty `I3SOCK`
 - Clearer IPC error messages; flush JSON output early
+- License aligned to GPL-3.0-or-later (was incorrectly labeled MIT in README/packaging)
 
 ## 0.2.0
 

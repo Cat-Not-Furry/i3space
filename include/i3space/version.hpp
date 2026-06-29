@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Cat-Not-Furry
+
 #pragma once
 
 #define I3SPACE_VERSION "0.2.1"
