@@ -1,0 +1,34 @@
+.TH I3SPACE 1 "June 2026" "i3space 0.2.0" "User Commands"
+.SH NAME
+i3space \- workspace overview for i3
+.SH SYNOPSIS
+.B i3space
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+Shows active i3 workspaces per monitor in a horizontal strip. Config-agnostic: reads state via i3 IPC.
+.SH OPTIONS
+.TP
+.B \-\-toggle
+Open interactive overview (requires i3 and X11).
+.TP
+.B \-\-print-active
+Print active workspaces grouped by output (JSON).
+.TP
+.B \-\-output \fINAME\fR
+Filter \-\-print-active to one X output.
+.TP
+.B \-\-version
+Print version.
+.TP
+.B \-\-help
+Print help.
+.SH FILES
+.TP
+.B ~/.config/i3space/i3space
+Main configuration.
+.SH EXAMPLE
+bindsym \-\-release $mod+Shift+Tab exec \-\-no-startup-id i3space \-\-toggle
+.SH SEE ALSO
+.BR i3 (1),
+.BR i3-msg (1),
+.BR picom (1)

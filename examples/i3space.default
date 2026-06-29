@@ -1,0 +1,15 @@
+#!config
+bar_margin_px = 0
+card_width = 255
+card_height = 180
+strip_margin_px = 8
+single_ws_toast_ms = 2000
+single_ws_message =
+strip_position = top
+
+#!transparency
+opacity = 0.92
+blur_background = false
+blur_strength = 5
+fade_ms = 0
+scroll_step_px = 64
